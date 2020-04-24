@@ -84,7 +84,7 @@ public class PullRequestGroupProvider {
         securityService.withPermission(Permission.ADMIN, "Getting members of a group")
                 .call((Operation<Boolean, Exception>) () -> {
                     for (ApplicationUser applicationUser : new PagedIterable<>(request ->
-                            userService.findUsersByGroup(groupName, request), PageRequest.MAX_PAGE_LIMIT)) {
+                            userService.findUsersByGroup(groupName, request), (PluginProperties.MAX_MEMBERS_IN_GROUP + 1))) { // +1 to trip the truncated flag
 
                         if (pullRequestGroup.isTruncated())
                             break;
