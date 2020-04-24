@@ -1,0 +1,90 @@
+{namespace com.cyanoth.prgroup}
+
+/**
+ * Is a comment supposed to go here? :-)
+ */
+{template .dialogs}
+    <img id="prgroup-icon" style="display: none" src="{plugin_resource('com.cyanoth.prgroup:prgroup-ui-resources', 'group-avatar-48.png', [ 'urlMode' : 'configured' ])}">
+
+    <section id="select-group-dialog" class="aui-dialog2 aui-dialog2-medium" role="dialog" style="display: none;">
+        <header class="aui-dialog2-header">
+            <h2 class="aui-dialog2-header-main">Pull Request Reviewers: Select Group(s)</h2>
+            <a class="aui-dialog2-header-close">
+                <span class="aui-icon aui-icon-small aui-iconfont-close-dialog">Close</span>
+            </a>
+        </header>
+
+        <div class="aui-message aui-message-info group-info-message" >
+            <p>Only groups with <strong>explicit permission</strong> to the repository (or project) will be listed.</p>
+        </div>
+        <h4 class="subtext">
+            Check the box next to each group name and click the button "Add Selected Group".<br/>
+            Members of the selected groups will be added to the reviewers box.
+        </h4>
+        <aui-spinner id="loadspinner" size="large"></aui-spinner>
+        <div id="prgroups-section">
+            <div class="aui-message aui-message-info no-groups-message" >
+                <p>There are no groups with explicit permissions to this repository.</p>
+            </div>
+
+            <div id="prgroups-table-container">
+                <table id="prgroups-table" class="aui">
+                    <thead>
+                    <tr>
+                        <th id="prgroup-table-col-checkbox"></th>
+                        <th id="prgroup-table-col-avatar"></th>
+                        <th id="prgroup-table-col-groupname">Group Name</th>
+                        <th id="pr-group-table-col-membercount">Members</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="display: none;"></tr>
+                    </tbody>
+                </table>
+            <br/><br/>
+            </div>
+            <footer class="aui-dialog2-footer">
+                <div class="aui-dialog2-footer-actions">
+                    <button id="select-all-prgroup-dialog-button" class="aui-button">Select All Groups</button>
+                    <button id="clear-all-prgroup-dialog-button" class="aui-button">Clear All Selected</button>
+                    <button id="cancel-prgroup-dialog-button" class="aui-button">Cancel</button>
+                    <button id="confirm-prgroup-dialog-button" class="aui-button aui-button-primary">Add Members From Selected Groups</button>
+                </div>
+            </footer>
+        </div>
+    </section>
+
+    <section id="member-info-dialog" class="aui-dialog2 aui-dialog2-medium" role="dialog" style="z-index: 4000; display: none;">
+        <header class="aui-dialog2-header">
+            <h2 id="member-info-heading-text" class="aui-dialog2-header-main"></h2>
+            <a class="aui-dialog2-header-close">
+                <span class="aui-icon aui-icon-small aui-iconfont-close-dialog">Close</span>
+            </a>
+        </header>
+        <div id="member-info-section">
+            <div class="aui-message aui-message-info no-members-info-message" >
+                <p>This group contains no members.</p>
+            </div>
+
+            <div id="member-info-table-container">
+                <table id="member-info-table" class="aui">
+                    <thead>
+                    <tr>
+                        <th id="member-info-col-avatar"></th>
+                        <th id="member-info-col-groupname">Name</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="display: none;"></tr>
+                    </tbody>
+                </table>
+                <br/><br/>
+            </div>
+            <footer class="aui-dialog2-footer">
+                <div class="aui-dialog2-footer-actions">
+                    <button id="member-info-close-dialog-button" class="aui-button aui-button-primary">Close</button>
+                </div>
+            </footer>
+        </div>
+    </section>
+{/template}

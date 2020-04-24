@@ -1,0 +1,90 @@
+#loadspinner {
+    margin: auto;
+    width: 50%;
+}
+
+.subtext {
+    margin: 5px 20px 5px 20px; !important;
+}
+
+.group-info-message {
+    margin: 20px;
+}
+
+#select-group-dialog {
+    z-index: 3000;
+    min-width: 800px;
+    min-height: 350px;
+}
+
+#prgroups-section {
+    margin: 15px;
+}
+
+#member-info-section {
+    margin: 15px;
+}
+
+.prgroup-icon {
+    padding-top: 3px;
+    width: 16px;
+    height: 16px;
+}
+
+/* Checkbox Column */
+#prgroups-table tbody tr td:nth-child(1) {
+    width: 10px;
+}
+
+/* Group Icon Column */
+#prgroups-table tbody tr td:nth-child(2) {
+    width: 20px;
+}
+
+/* Group Name Column */
+#prgroups-table tbody tr td:nth-child(3) {
+    width: 70%;
+}
+
+/* Group Member Count Column */
+#prgroups-table tbody tr td:nth-child(4) {
+    width: 25%;
+}
+
+/* Member Info Avatar Column */
+#member-info-table tbody tr td:nth-child(1) {
+    width: 28px;
+}
+
+/* Member Info Name Column */
+#member-info-table tbody tr td:nth-child(2) {
+    padding-top: 10px;
+    width: 100%;
+}
+
+#prgroups-table-container {
+    max-height: 250px;
+    overflow-y: scroll;
+}
+
+#member-info-table-container {
+    max-height: 250px;
+    overflow-y: scroll;
+}
+
+#clear-all-prgroup-dialog-button {
+    margin-right: 100px;
+}
+
+#member-info-dialog {
+    z-index: 4000;
+}
+
+.member-avatar {
+    width: 24px;
+    height: 24px;
+}
+
+.no-groups-message {
+    margin-bottom: 30px;
+}

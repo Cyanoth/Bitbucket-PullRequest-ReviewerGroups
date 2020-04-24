@@ -1,0 +1,32 @@
+<atlassian-plugin key="${atlassian.plugin.key}" name="${project.name}" plugins-version="2">
+    <plugin-info>
+        <description>${project.description}</description>
+        <version>${project.version}</version>
+        <vendor name="${project.organization.name}" url="${project.organization.url}" />
+        <param name="plugin-icon">images/pluginIcon.png</param>
+        <param name="plugin-logo">images/pluginIcon.png</param>
+    </plugin-info>
+
+    <rest name="PullRequest Group API" key="prgroup-rest" path="/prgroup" version="1.0">
+        <description>API for Pull Request Group Reviewers</description>
+        <package>com.cyanoth.prgroup.rest</package>
+    </rest>
+
+    <client-resource name="PullRequest Group UI Resources" key="prgroup-ui-resources">
+        <resource type="download" name="prgroup.soy" location="/soy/prgroup.soy"/>
+        <resource type="download" name="prgroup.css" location="/css/prgroup.css"/>
+        <resource type="download" name="prgroup.js" location="/js/prgroup.js"/>
+        <resource type="download" name="group-avatar-48.png" location="/images/group-avatar-48.png"/>
+        <context>bitbucket.layout.pullRequest</context>
+        <context>bitbucket.page.compare</context>
+        <dependency>com.atlassian.auiplugin:ajs</dependency>
+        <dependency>com.atlassian.bitbucket.server.bitbucket-web:global</dependency>
+        <dependency>com.atlassian.bitbucket.server.bitbucket-web-api:jquery</dependency>
+        <dependency>com.atlassian.bitbucket.server.bitbucket-web-api:navbuilder</dependency>
+    </client-resource>
+
+    <web-panel name="PullRequest Group UI" key="prgroup-ui" location="bitbucket.web.repository.banner" weight="2050">
+        <resource name="view" type="soy" location="com.cyanoth.prgroup:prgroup-ui-resources/com.cyanoth.prgroup.dialogs" />
+        <dependency>com.cyanoth.prgroup:prgroup-ui-resources</dependency>
+    </web-panel>
+</atlassian-plugin>
