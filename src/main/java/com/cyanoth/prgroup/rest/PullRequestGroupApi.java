@@ -44,7 +44,7 @@ public class PullRequestGroupApi {
             return Response.ok(new Gson().toJson(pullRequestGroupProvider.getPermittedGroups(repository))).build();
         }
         catch (Exception e) {
-            return commonApiExceptionResponses(e);
+            return commonApiExceptionResponse(e);
         }
     }
 
@@ -58,7 +58,7 @@ public class PullRequestGroupApi {
         return repository;
     }
 
-    private Response commonApiExceptionResponses(Exception e) {
+    private Response commonApiExceptionResponse(Exception e) {
         if (e instanceof AuthorisationException)
             return Response.status(401).entity(new RestErrorMessage("You do not have permission to perform this operation or access a resource")).build();
         else if (e instanceof RepositoryDoesNotExistException)
