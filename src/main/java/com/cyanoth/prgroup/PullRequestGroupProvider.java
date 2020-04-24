@@ -8,7 +8,6 @@ import com.atlassian.bitbucket.permission.PermissionAdminService;
 import com.atlassian.bitbucket.permission.PermissionService;
 import com.atlassian.bitbucket.permission.PermittedGroup;
 import com.atlassian.bitbucket.repository.Repository;
-import com.atlassian.bitbucket.rest.enrich.AvatarEnricher;
 import com.atlassian.bitbucket.user.ApplicationUser;
 import com.atlassian.bitbucket.user.SecurityService;
 import com.atlassian.bitbucket.user.UserService;
@@ -32,6 +31,8 @@ public class PullRequestGroupProvider {
     private final AvatarService avatarService;
     private final NavBuilder navBuilder;
 
+    private static final int AVATAR_SIZE_PX = 48;
+
     @Autowired
     public PullRequestGroupProvider(@ComponentImport UserService userService,
                                     @ComponentImport PermissionService permissionService,
@@ -47,14 +48,24 @@ public class PullRequestGroupProvider {
         this.navBuilder = navBuilder;
     }
 
+    /**
+     * @param repository Bitbucket Repository object to get groups details of.
+     * @return Array of PullRequestGroup with details about groups (including members) that have permission to the repository (including project groups)
+     * @throws Exception Thrown by securityService, must be handled by the caller
+     */
     public ArrayList<PullRequestGroup> getPermittedGroups(Repository repository) throws Exception {
         ArrayList<PullRequestGroup> permittedGroups = new ArrayList<>();
         for (String groupName: getPermittedGroupNames(repository)) {
-            permittedGroups.add(getPullRequestGroupWithMembers(groupName));
+            permittedGroups.add(getPullRequestGroup(groupName));
         }
         return permittedGroups;
     }
 
+    /**
+     * @param repository Bitbucket Repository object to get groups names of.
+     * @return Set of group names that have permission to the repository or project
+     * @throws Exception Thrown by securityService, must be handled by the caller
+     */
     private HashSet<String> getPermittedGroupNames(Repository repository) throws Exception {
         return securityService.withPermission(Permission.PROJECT_ADMIN, "Getting groups with permission to repository.")
             .call((Operation<HashSet<String>, Exception>) () -> {
@@ -77,7 +88,12 @@ public class PullRequestGroupProvider {
             });
     }
 
-    private PullRequestGroup getPullRequestGroupWithMembers(String groupName) throws Exception {
+    /**
+     * @param groupName Name of the Bitbucket group to get details for
+     * @return Bitbucket group information with a collection of members belonging to the group.
+     * @throws Exception Thrown by securityService, must be handled by the caller
+     */
+    private PullRequestGroup getPullRequestGroup(String groupName) throws Exception {
         PullRequestGroup pullRequestGroup = new PullRequestGroup(groupName);
         boolean useHttps = navBuilder.buildBaseUrl().startsWith("https");
 
@@ -95,7 +111,7 @@ public class PullRequestGroupProvider {
                         // Using slug instead of name will cause issues if the user has a capital letter in their name
                         if (permissionService.hasGlobalPermission(applicationUser, Permission.LICENSED_USER) && applicationUser.isActive()) {
                             pullRequestGroup.addGroupMember(new PullRequestGroupMember(applicationUser.getDisplayName(), applicationUser.getName(),
-                                    avatarService.getUrlForPerson(applicationUser, new AvatarRequest(useHttps, 48, true))));
+                                    avatarService.getUrlForPerson(applicationUser, new AvatarRequest(useHttps, AVATAR_SIZE_PX, true))));
                         }
                     }
                     return true;
