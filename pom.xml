@@ -4,7 +4,7 @@
 
     <groupId>com.cyanoth</groupId>
     <artifactId>prgroup</artifactId>
-    <version>0.1.2</version>
+    <version>0.1.3</version>
     <packaging>atlassian-plugin</packaging>
 
     <name>Pull Request Reviewer Groups</name>
