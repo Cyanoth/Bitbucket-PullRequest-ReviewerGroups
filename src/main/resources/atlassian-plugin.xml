@@ -7,9 +7,15 @@
         <param name="plugin-logo">images/pluginIcon.png</param>
     </plugin-info>
 
+    <resource type="i18n" name="prgroup_plugin.properties" location="com.cyanoth.prgroup"/>
+
+    <ao key="ao-module">
+        <entity>com.cyanoth.prgroup.config.PluginConfigEntity</entity>
+    </ao>
+
     <rest name="PullRequest Group API" key="prgroup-rest" path="/prgroup" version="1.0">
-        <description>API for Pull Request Group Reviewers</description>
         <package>com.cyanoth.prgroup.rest</package>
+        <package>com.cyanoth.prgroup.config.rest</package>
     </rest>
 
     <client-resource name="PullRequest Group UI Resources" key="prgroup-ui-resources">
@@ -29,4 +35,29 @@
         <resource name="view" type="soy" location="com.cyanoth.prgroup:prgroup-ui-resources/com.cyanoth.prgroup.dialogs" />
         <dependency>com.cyanoth.prgroup:prgroup-ui-resources</dependency>
     </web-panel>
+
+    <client-resource key="prgroup-config-ui-res" name="PullRequest Group Config UI Resources">
+        <resource type="download" name="prgroup-config.js" location="/js/prgroup-config.js"/>
+        <resource type="download" name="prgroup-config.soy" location="/soy/prgroup-config.soy"/>
+        <context>com.cyanoth.prgroup.config</context>
+
+        <dependency>com.atlassian.auiplugin:ajs</dependency>
+        <dependency>com.atlassian.bitbucket.server.bitbucket-web:global</dependency>
+        <dependency>com.atlassian.bitbucket.server.bitbucket-web-api:aui</dependency>
+        <dependency>com.atlassian.bitbucket.server.bitbucket-web-api:navbuilder</dependency>
+    </client-resource>
+
+    <servlet key="prgroup-config-servlet" class="com.cyanoth.prgroup.config.ui.PluginConfigServlet" name="PullRequest Group Config Servlet">
+        <url-pattern>/prgroup/ui/config</url-pattern> <!-- With /ui/ so not to confuse with the REST API (/prgroup/config) endpoint -->
+        <dependency>com.cyanoth.prgroup:prgroup-config-ui-res-</dependency>
+    </servlet>
+
+    <web-item key="prgroup-config-admin-link" name="PullRequest Group Admin Link" weight="20" section="atl.admin/admin-plugins-section" application="bitbucket">
+        <condition class="com.atlassian.bitbucket.web.conditions.HasGlobalPermissionCondition">
+            <param name="permission">ADMIN</param>
+        </condition>
+        <label key="plugin.page.repo.ci.info.tab.label">Pull Request Groups</label>
+        <tooltip key="plugin.page.repo.ci.sys.info.tab.tooltip">Configure Pull Request Group Plugin.</tooltip>
+        <link>/plugins/servlet/prgroup/ui/config</link>
+    </web-item>
 </atlassian-plugin>

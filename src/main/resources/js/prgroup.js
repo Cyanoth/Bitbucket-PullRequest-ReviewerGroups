@@ -23,14 +23,17 @@ define('PrGroup', [
             exports) {
     'use strict';
 
+    let loadedTargetProjectKey = null;
+    let loadedTargetRepositorySlug = null;
+    let loadedData = [];
+
     let isLoadingGroups = false;
     let hasGroupsLoaded = false;
-    let loadedData = [];
 
     exports.onReady = function () {
         togglePrGroupSection(false)
 
-        // This is only supported on creating a pull-request. Not editing a pull-request. Failsafe.
+        // This plugin is currently only supported on creating a pull-request. Not editing a pull-request.
         if ($(".page-panel-content-header").first().text() === "Create pull request") {
             addButton()
         }
@@ -82,20 +85,34 @@ define('PrGroup', [
     }
 
     function loadDialog() {
-        if (isLoadingGroups || hasGroupsLoaded)
+        if (isLoadingGroups)
             return;
 
         isLoadingGroups = true;
 
+        // Handle the user changing their mind, going back and selecting a different target.
+        let selectedTarget = JSON.parse($("#targetRepo .repository").attr("data-repository"));
+        let selectedProjectKey = selectedTarget["project"]["key"];
+        let selectedRepositorySlug = selectedTarget["slug"]
+
+        if (loadedTargetProjectKey !== selectedProjectKey ||  loadedTargetRepositorySlug !== selectedRepositorySlug)
+            resetDialog();
+
+        if (hasGroupsLoaded)
+            return;
+
         // Get a list of project & repository permission groups
         server.rest({
-            url: navbuilder.rest("prgroup").addPathComponents(state.getProject().key, state.getRepository().slug).build(),
+            url: navbuilder.rest("prgroup").addPathComponents(selectedProjectKey, selectedRepositorySlug).build(),
             type: 'GET',
             async: true,
+            timeout: 60000,
             success: function (data, textStatus, jqXHR) {
                 if (jqXHR.status === 200) {
                     loadedData = data;
                     populateDialog(loadedData)
+                    loadedTargetProjectKey = selectedProjectKey
+                    loadedTargetRepositorySlug = selectedRepositorySlug
                     hasGroupsLoaded = true;
                     isLoadingGroups = false;
                 }
@@ -109,6 +126,7 @@ define('PrGroup', [
                     body: "An error occurred loading pull request groups. Please see browser console for more information"
                 });
                 resetDialog()
+                isLoadingGroups = false;
                 console.log("Error loading PR Groups: " + jqXHR.status + " || Error: " + jqXHR.responseText)
             },
             statusCode: {
@@ -121,13 +139,10 @@ define('PrGroup', [
     }
 
     function populateDialog(data) {
-        console.log(data)
-        console.log(data.length)
         $(".no-groups-message").toggle((data.length === 0));
         $("#prgroups-table-container").toggle((data.length !== 0));
 
-        // Add a table on the dialog, with each group.
-        // If a group has its members truncated, it cannot be selected. Disable checkbox & put a tooltip
+        // Add a table on the dialog, with each group. If a group has its members truncated, it cannot be selected. Disable checkbox & put a tooltip
         data.forEach(function(group) {
             group["member_count"] = group["group_members"].length;
             if (group["members_truncated"]) {
@@ -141,8 +156,6 @@ define('PrGroup', [
                 group["member_count"] = group["group_members"].length;
                 group["checkbox_title"] = ""
                 group["disabled_flag"] = ""
-
-                // Bit hacky ¯\_(ツ)_/¯
                 group["start_link"] = '<a class="show-member-link" data-name="'+ group["group_display_name"] + '" href="#">'
                 group["end_link"] = '</a>'
             }
@@ -198,9 +211,8 @@ define('PrGroup', [
     }
 
     function resetDialog() {
-        isLoadingGroups = false;
         hasGroupsLoaded = false;
-        $("#prgroups-section").empty();
+        $("#prgroups-table tbody").empty().append('<tr style="display: none;"></tr>');
         togglePrGroupSection(false)
     }
 

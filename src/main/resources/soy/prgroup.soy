@@ -1,7 +1,7 @@
 {namespace com.cyanoth.prgroup}
 
 /**
- * Is a comment supposed to go here? :-)
+ * Hidden elements used for Pull Request Reviewer Group Dialogs
  */
 {template .dialogs}
     <img id="prgroup-icon" style="display: none" src="{plugin_resource('com.cyanoth.prgroup:prgroup-ui-resources', 'group-avatar-48.png', [ 'urlMode' : 'configured' ])}">
@@ -15,7 +15,7 @@
         </header>
 
         <div class="aui-message aui-message-info group-info-message" >
-            <p>Only groups with <strong>explicit permission</strong> to the repository (or project) will be listed.</p>
+            <p>Only groups with <strong>explicit permission</strong> to target repository (or its project) will be listed.</p>
         </div>
         <h4 class="subtext">
             Check the box next to each group name and click the button "Add Selected Group".<br/>
@@ -24,7 +24,7 @@
         <aui-spinner id="loadspinner" size="large"></aui-spinner>
         <div id="prgroups-section">
             <div class="aui-message aui-message-info no-groups-message" >
-                <p>There are no groups with explicit permissions to this repository.</p>
+                <p>There are no groups with explicit permissions on the selected target repository.</p>
             </div>
 
             <div id="prgroups-table-container">

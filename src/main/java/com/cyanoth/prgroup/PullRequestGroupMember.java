@@ -1,10 +1,8 @@
 package com.cyanoth.prgroup;
 
 import com.google.gson.annotations.SerializedName;
-
 import java.io.Serializable;
 
-@SuppressWarnings("FieldCanBeLocal")
 public class PullRequestGroupMember implements Serializable {
     @SerializedName("user_display_name")
     private final String userDisplayName;
@@ -19,9 +17,5 @@ public class PullRequestGroupMember implements Serializable {
         this.userDisplayName = userDisplayName;
         this.userName = userName;
         this.avatarUrl = avatarUrl;
-    }
-
-    public String getUserName() {
-        return userName;
     }
 }

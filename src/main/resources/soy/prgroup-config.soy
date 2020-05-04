@@ -1,0 +1,51 @@
+{namespace com.cyanoth.prgroup}
+
+/**
+ * Pull Request Configuration Page Layout
+ * @param configValMaxGroupSize
+ * @param configValHideTruncatedGroups
+ */
+{template .configPage }
+    <html xmlns="http://www.w3.org/1999/html">
+    <head>
+        <meta name="decorator" content="atl.admin">
+        <title>Pull Request Groups: Configuration</title>
+    </head>
+    <body>
+        <h1>Pull Request Groups: Configuration</h1>
+        <br/>
+        <div id="prgroup-config-section">
+                <form class="aui">
+                    <div class="field-group">
+                        <label for="prgroup-config-maxgroup-size-text">Max Group Size: </label>
+                        <input class="text short-field" value="{$configValMaxGroupSize}" type="text" id="prgroup-config-maxgroup-size-text">
+                        <div class="description">
+                            Limit for the the amount of members in a group can contain to be selectable a reviewer group.<br/>
+                            If a group contains more members than this value then the response will have 'members_truncated: true' and <br/>
+                            the group will not be selectable as a pull-request reviewer group.<br/>
+                            Minimum value: 1, Maximum Value: 5000, Default Value: 50
+                        </div>
+                    </div>
+                    <br/>
+                    <div class="field-group">
+                        <label for="prgroup-config-hide-truncated-checkbox">Hide Truncated Groups: </label>
+                        <input class="checkbox" {$configValHideTruncatedGroups} type="checkbox" name="prgroup-config-hide-truncated-checkbox" id="prgroup-config-hide-truncated-checkbox">
+                        <div class="description">
+                            If true, groups which have more members than the maximum group size value will not be included or visible in the pull-request group select dialog
+                        </div>
+                    </div>
+                    <br/>
+
+                    <div id="prgroup-button-section">
+                        <button class="aui-button" id="prgroup-cancel-button">Cancel</button>
+                        <button class="aui-button aui-button-primary" id="prgroup-save-button">Save Config</button>
+                    </div>
+                </form>
+        </div>
+
+
+
+    </body>
+    </html>
+{/template}
+
