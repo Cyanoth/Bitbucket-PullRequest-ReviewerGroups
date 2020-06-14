@@ -47,7 +47,7 @@ define('PrGroup', [
     }
 
     function addButton() {
-        $("#reviewers").after('<br/><button class="aui-button" id="add-group-button">Add Reviewers From Group</button>');
+        $("#reviewers").after('<br/><button class="aui-button" type="button" value="" ="add-group-button">Add Reviewers From Group</button>');
         $("#add-group-button").on("click", function(e) {
             e.preventDefault();
             AJS.dialog2($("#select-group-dialog")).show();
