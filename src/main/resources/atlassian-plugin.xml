@@ -24,6 +24,8 @@
         <resource type="download" name="prgroup.js" location="/js/prgroup.js"/>
         <resource type="download" name="group-avatar-48.png" location="/images/group-avatar-48.png"/>
         <context>bitbucket.layout.pullRequest</context>
+        <context>bitbucket.page.pullRequest.view</context>    <!-- BBS 6.x Pull Request Page -->
+        <context>bitbucket.page.pullRequest.detail</context>  <!-- BBS 7.x Pull Request Page -->
         <context>bitbucket.page.compare</context>
         <dependency>com.atlassian.auiplugin:ajs</dependency>
         <dependency>com.atlassian.bitbucket.server.bitbucket-web:global</dependency>

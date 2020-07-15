@@ -125,8 +125,9 @@ public class PullRequestGroupProvider {
                     // Also use .getName() not .getSlug() because pull-request reviewer check does getUsersByName(...) and slug is always lowercase
                     // If we were to use slug instead of username it will cause issues if the user has a capital letter in their username
                     if (permissionService.hasGlobalPermission(applicationUser, Permission.LICENSED_USER) && applicationUser.isActive()) {
-                        pullRequestGroup.addGroupMember(new PullRequestGroupMember(applicationUser.getDisplayName(), applicationUser.getName(),
-                                avatarService.getUrlForPerson(applicationUser, new AvatarRequest(useHttps, AVATAR_SIZE_PX, true))));
+                        pullRequestGroup.addGroupMember(new PullRequestGroupMember(applicationUser.getId(), applicationUser.getDisplayName(),
+                                applicationUser.getName(), avatarService.getUrlForPerson(applicationUser,
+                                new AvatarRequest(useHttps, AVATAR_SIZE_PX, true))));
                         memberCount++;
                     }
                 }

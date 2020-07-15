@@ -10,44 +10,112 @@ let templateMemberRow = '<tr>' +
                             '<td><a href="${member_link}" target="_blank">${user_display_name}</a></td>' +
                         '</tr>'
 
+const add_group_button_element = '<br/><button class="aui-button" type="button" id="add-group-button">Add Reviewers From Group</button>'
+
 define('PrGroup', [
-    'jquery',
-    'bitbucket/util/state',
-    'bitbucket/util/navbuilder',
-    'bitbucket/util/server',
-    'exports'
+'jquery',
+'bitbucket/util/state',
+'bitbucket/util/navbuilder',
+'bitbucket/util/server',
+'exports'
 ], function($,
             state,
             navbuilder,
             server,
             exports) {
+
     'use strict';
+
+    const PrModes = {
+        CREATE: "CREATE",       // Creating a Pull-Request (Works both BBS6 & BBS7)
+        EDIT_BB7: "EDIT_BB7",   // Editing a pull-request (Specific for Bitbucket 7)
+        EDIT_BB6: "EDIT_BB6"    // Editing a pull-request (Specific for Bitbucket 6)
+    }
+
+    let PrMode;
 
     let loadedTargetProjectKey = null;
     let loadedTargetRepositorySlug = null;
-    let loadedData = [];
 
+    let loadedData = [];
     let isLoadingGroups = false;
+
     let hasGroupsLoaded = false;
 
     exports.onReady = function () {
         togglePrGroupSection(false)
 
-        // This plugin is currently only supported on creating a pull-request. Not editing a pull-request.
+        // Supported in both Bitbucket 6 & 7: Add button to Create Pull Request Page
         if ($(".page-panel-content-header").first().text() === "Create pull request") {
-            addButton()
+            $("#reviewers").after(add_group_button_element);
+            addHandlers()
+            PrMode = PrModes.CREATE
         }
-
+        else {
+            let bb_major_version = get_bitbucket_major_version()
+            if (bb_major_version === "7") {
+                watchForEditPrDialog("7")
+                PrMode = PrModes.EDIT_BB7;
+            }
+            else if (bb_major_version === "6") {
+                // TODO - Not Yet Supported
+                //watchForEditPrDialog("6")
+                //PrMode = PrModes.EDIT_BB6;
+            }
+            else {
+                console.log("PRGroup - Unsupported Bitbucket Version.")
+            }
+        }
         console.log("Client-sided JavaScript for PRGroup was loaded successfully!");
     };
+
+    function get_bitbucket_major_version() {
+        if ($("#product-version").length ) {
+            let val = $("#product-version").text()
+            // v6.10.2 -> 6
+            return val.trim().substr(1, (val.indexOf('.') - 2));
+        }
+        else {
+            // This is not future proof; The new PR interface doesn't have a DOM element
+            // containing the Bitbucket Version, so we assume if that element is not there its bitbucket 7.
+            return "7"
+        }
+    }
+
+    function watchForEditPrDialog(bitbucket_version) {
+
+        let watchClass = ((bitbucket_version === "6") ? "aui-layer" : "atlaskit-portal-container")
+
+        let observer = new MutationObserver(function(mutations) {
+            for(let mutation of mutations) {
+                if (mutation.type === "childList" && mutation.target.className === watchClass) {
+                    // A dialog has been added to the page. Check if its the edit pull request dialog
+                    if (mutation.addedNodes.length === 1) {
+                        let selector = ((bitbucket_version === "6") ? $("h2:contains('Edit Pull Request')") : $("span:contains('Edit Pull Request')"))
+                        if (selector.length === 1) {
+                            // This event was to show the edit pull request dialog, so add the pr group button
+                            // Want to put the button in the same div as the reviewer help text (match by text, always last)
+                            let addButtonTarget = $("div:contains('Reviewers can approve a pull request to let others know when it is good to merge')").last();
+                            $(addButtonTarget).before(add_group_button_element);
+                            addHandlers();
+                         }
+                     }
+                }
+            }
+        })
+
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        })
+    }
 
     function togglePrGroupSection(visible) {
         $("#prgroups-section").toggle(visible);
         $("#loadspinner").toggle(!visible);
     }
 
-    function addButton() {
-        $("#reviewers").after('<br/><button class="aui-button" type="button" value="" ="add-group-button">Add Reviewers From Group</button>');
+    function addHandlers() {
         $("#add-group-button").on("click", function(e) {
             e.preventDefault();
             AJS.dialog2($("#select-group-dialog")).show();
@@ -89,14 +157,29 @@ define('PrGroup', [
             return;
 
         isLoadingGroups = true;
+        let selectedProjectKey;
+        let selectedRepositorySlug;
 
-        // Handle the user changing their mind, going back and selecting a different target.
-        let selectedTarget = JSON.parse($("#targetRepo .repository").attr("data-repository"));
-        let selectedProjectKey = selectedTarget["project"]["key"];
-        let selectedRepositorySlug = selectedTarget["slug"]
+        if (PrMode === PrModes.CREATE) {
+            // Handle the user changing their mind, going back and selecting a different target.
+            let selectedTarget = JSON.parse($("#targetRepo .repository").attr("data-repository"));
+            selectedProjectKey = selectedTarget["project"]["key"];
+            selectedRepositorySlug = selectedTarget["slug"]
 
-        if (loadedTargetProjectKey !== selectedProjectKey ||  loadedTargetRepositorySlug !== selectedRepositorySlug)
-            resetDialog();
+            if (loadedTargetProjectKey !== selectedProjectKey || loadedTargetRepositorySlug !== selectedRepositorySlug)
+                resetDialog();
+        }
+        else if (PrMode === PrModes.EDIT_BB7 || PrMode === PrModes.EDIT_BB6) {
+            // state.getPullRequest() - no longer exists in BBS 7.x, so don't use it.
+            selectedProjectKey = state.getRepository()["project"]["key"];
+            selectedRepositorySlug = state.getRepository()["slug"]
+        }
+        else {
+            console.log("PRGroup-Reviewers: Error loading dialog, unknown PR mode!")
+            AJS.dialog2($("#select-group-dialog")).hide();
+            isLoadingGroups = false;
+            return
+        }
 
         if (hasGroupsLoaded)
             return;
@@ -166,35 +249,101 @@ define('PrGroup', [
         togglePrGroupSection(true)
     }
 
-    function addReviewers() {
-        $("#confirm-prgroup-dialog-button").get(0).busy();
+    function getSelectedMembers() {
+        let selectedReviewers = [];
+
+        $('.checkbox-selected-prgroup:checked').each(function () { // For each selected group
+            let selectedGroupName = $(this).attr("name");
+            loadedData.forEach(function (loadedGroup) {
+                if (selectedGroupName === loadedGroup["group_display_name"]) {  // Find the group by name in the loaded data
+                    loadedGroup["group_members"].forEach(function (member) {
+                        // The current user cannot be a reviewer of the same PR. So if a selected group contains
+                        // don't add them as a reviewer
+                        if (member["user_name"] === state.getCurrentUser().name)
+                            return;
+
+                        console.log("Adding: " + member["user_name"] + " as a reviewer");
+                        if (PrMode === PrModes.CREATE || PrMode === PrModes.EDIT_BB6) {
+                            selectedReviewers.push(userInfoToAjsSelect2DataObj(member["user_name"], member["user_display_name"], member["user_avatar_url"]));
+                        }
+                        else if (PrMode === PrModes.EDIT_BB7) {
+                            selectedReviewers.push(userInfoToReactSelect(member["user_id"], member["user_name"], member["user_display_name"], member["user_avatar_url"]));
+                        }
+                        else {
+                            throw new Error("PRGroup-Reviewers: Unknown PR Mode")
+                        }
+                    });
+                }
+            });
+        });
+
+        return selectedReviewers;
+    }
+
+    function addReviewersCreate() {
+        // Supported both Bitbucket 6 & 7
         let oldData = $("#reviewers").select2('data');
-
+        // We combine all the individual reviewers already selected plus the members
+        // of the group. Then replace the selected reviewers with the result.
+        // Fortunately, select2 handles the set for us already - so any duplicates is handled (we don't need to check if already a reviewer)
         try {
-            // We combine all the individual reviewers already selected plus the members
-            // of the group. Then replace the selected reviewers with the result.
-            // Fortunately, select2 handles the set for us already - so any duplicates is handled (we don't need to check if already a reviewer)
-            let selectedReviewers = [];
-            selectedReviewers = getExistingReviewers();
-
-            $('.checkbox-selected-prgroup:checked').each(function () { // For each selected group
-                let selectedGroupName = $(this).attr("name");
-                loadedData.forEach(function (loadedGroup) {
-                    if (selectedGroupName === loadedGroup["group_display_name"]) {  // Find the group by name in the loaded data
-                        loadedGroup["group_members"].forEach(function (member) {
-                            // The current user cannot be a reviewer of the same PR. So if a selected group contains
-                            // don't add them as a reviewer
-                            if (member["user_name"] === state.getCurrentUser().name)
-                                return;
-
-                            console.log("Adding: " + member["user_name"] + " as a reviewer");
-                            selectedReviewers.push(userInfoToAjsSelect2DataObj(member["user_name"], member["user_display_name"], member["user_avatar_url"]))
-                        });
-                    }
-                });
+            let previousReviewers = [];
+            $("#s2id_reviewers .select2-search-choice").each(function () {
+                let displayName =  $(this).find(".avatar-with-name").attr("title");
+                let slug = $(this).find(".user-avatar").attr("data-username");
+                let avatarUrl = $(this).find(".aui-avatar-inner img").attr("src");
+                previousReviewers.push(userInfoToAjsSelect2DataObj(slug, displayName, avatarUrl));
             });
 
-            $("#reviewers").select2('data', selectedReviewers);
+            let newReviewers = getSelectedMembers()
+            let allReviewers = previousReviewers.concat(newReviewers)
+            $("#reviewers").select2('data', allReviewers);
+        }
+        catch (err) {
+            // On error, revert back to the previous selected reviewers & let caller handle
+            $("#reviewers").select2('data', oldData);
+            throw err
+        }
+    }
+
+    function addReviewersBB6Edit() {
+        // TODO - Not Yet Supported
+    }
+
+    function addReviewersBB7Edit() {
+        let reviewer_selector = $(".user-multi-select")[0] // can't use $("#reviewers-uidXX") ! Where XX is a seemingly a random number with no obvious pattern.
+        let reviewer_select_state = Object.keys($(reviewer_selector).parent()[0]).find(key=>key.startsWith("__reactEventHandlers$"));
+        let previousReviewers = $(reviewer_selector)[0][reviewer_select_state]["children"][1]["props"].getValue()
+
+        try {
+            let newReviewers = getSelectedMembers()
+            let allReviewers = previousReviewers.concat(newReviewers)
+            console.log(allReviewers)
+            $(reviewer_selector)[0][reviewer_select_state]["children"][1]["props"].setValue(allReviewers)
+
+        }
+        catch (err) {
+            // On error, revert back to the previous selected reviewers & let caller handle
+            $(reviewer_selector)[0][reviewer_select_state]["children"][1]["props"].setValue(previousReviewers)
+            throw err
+        }
+    }
+
+    function addReviewers() {
+        try {
+            $("#confirm-prgroup-dialog-button").get(0).busy();
+            if (PrMode === PrModes.CREATE) {
+                addReviewersCreate()
+            }
+            else if (PrMode === PrModes.EDIT_BB6) {
+                // TODO - Not Yet Supported
+            }
+            else if (PrMode === PrModes.EDIT_BB7) {
+                addReviewersBB7Edit()
+            }
+            else {
+                throw new Error("PRGroup-Reviewers: Unknown PR Mode")
+            }
         }
         catch (err) {
             AJS.flag({
@@ -203,7 +352,7 @@ define('PrGroup', [
                 title: "Failed to add group reviewers",
                 body: "An error occurred adding group reviewers. Please see browser console for more information."
             });
-            $("#reviewers").select2('data', oldData);
+            console.log(err)
         }
 
         $("#confirm-prgroup-dialog-button").get(0).idle();
@@ -224,36 +373,44 @@ define('PrGroup', [
         return str;
     }
 
-    function getExistingReviewers() {
-        let existingReviewers = [];
-        $("#s2id_reviewers .select2-search-choice").each(function () {
-            let displayName =  $(this).find(".avatar-with-name").attr("title");
-            let slug = $(this).find(".user-avatar").attr("data-username");
-            let avatarUrl = $(this).find(".aui-avatar-inner img").attr("src");
-            existingReviewers.push(userInfoToAjsSelect2DataObj(slug, displayName, avatarUrl));
-        });
 
-        return existingReviewers;
-    }
-
-    function userInfoToAjsSelect2DataObj(userName, displayName, avatarUrl) {
+    function userInfoToAjsSelect2DataObj(username, displayName, avatarUrl) {
         // Convert user information to an object that the reviewer box understands.
         // Some fields are not actually required, just its a common select box.
         // Reviewers only cares about slug, displayName and avatar
         return {
-            id: userName,
+            id: username,
             item: {
                 active: "true",
                 avatarUrl: avatarUrl,
                 displayName: displayName,
-                emailAddress: "not_applicable_for_reviewers",
-                id: "not_applicable_for_reviewers",
+                emailAddress: "ignored_for_select2",
+                id: "ignored_for_select2",
                 links: [], // Not applicable for reviewers
                 name: displayName,
-                slug: userName, // Yes, this is correct. slug === userName. See: PullRequestGroupProvider getPullRequestGroupWithMembers
+                slug: username, // Yes, this is correct. slug === userName. See: PullRequestGroupProvider getPullRequestGroupWithMembers
                 type: "NORMAL"
             },
             text: displayName
+        }
+    }
+
+    function userInfoToReactSelect(userId, username, displayName, avatarUrl) {
+        // Convert user information to an object that the react select box understands.
+        return {
+            label: username,
+            user: {
+                name: username,
+                emailAddress: "ignored_for_react_select",
+                id: userId,
+                displayName: displayName,
+                active: true,
+                slug: username,
+                type: "NORMAL",
+                links: { "self": [ { } ]},
+                avatarUrl: avatarUrl
+            },
+            value: userId
         }
     }
 
