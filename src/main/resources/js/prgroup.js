@@ -45,8 +45,12 @@ define('PrGroup', [
     exports.onReady = function () {
         togglePrGroupSection(false)
 
-        // Supported in both Bitbucket 6 & 7: Add button to Create Pull Request Page
-        if ($(".page-panel-content-header").first().text() === "Create pull request") {
+        // Logic works the same in both Bitbucket 6 & 7: Add button to Create Pull Request Page
+        let bb6_ele = $(".aui-page-header-main").children("h2").first().text()
+        let bb7_ele = $(".page-panel-content-header").first().text()
+        let find_text= "Create pull request"
+
+        if (bb6_ele === find_text || bb7_ele === find_text) {
             $("#reviewers").after(add_group_button_element);
             addHandlers()
             PrMode = PrModes.CREATE
@@ -58,12 +62,11 @@ define('PrGroup', [
                 PrMode = PrModes.EDIT_BB7;
             }
             else if (bb_major_version === "6") {
-                // TODO - Not Yet Supported
-                //watchForEditPrDialog("6")
-                //PrMode = PrModes.EDIT_BB6;
+                watchForEditPrDialog("6")
+                PrMode = PrModes.EDIT_BB6;
             }
             else {
-                console.log("PRGroup - Unsupported Bitbucket Version.")
+                console.log("PRGroup Reviewer - Unsupported Bitbucket Version.")
             }
         }
         console.log("Client-sided JavaScript for PRGroup was loaded successfully!");
@@ -76,14 +79,14 @@ define('PrGroup', [
             return val.trim().substr(1, (val.indexOf('.') - 2));
         }
         else {
-            // This is not future proof; The new PR interface doesn't have a DOM element
-            // containing the Bitbucket Version, so we assume if that element is not there its bitbucket 7.
+            // This is not future proof; The new PR interface doesn't have a DOM element containing the
+            // Bitbucket Version, so we _assume_ if that element is not there its bitbucket 7.
             return "7"
         }
     }
 
     function watchForEditPrDialog(bitbucket_version) {
-
+        // Observe the DOM and wait for the edit dialog to show before injecting the 'Add Review Group' button.
         let watchClass = ((bitbucket_version === "6") ? "aui-layer" : "atlaskit-portal-container")
 
         let observer = new MutationObserver(function(mutations) {
@@ -213,7 +216,7 @@ define('PrGroup', [
                 console.log("Error loading PR Groups: " + jqXHR.status + " || Error: " + jqXHR.responseText)
             },
             statusCode: {
-                // Stop bitbucket default error handling (otherwise misleading dialog presented to the user)
+                // Stop bitbucket default error handling (otherwise a misleading dialog could be presented to the user)
                 400: false,
                 404: false,
                 500: false
@@ -257,17 +260,18 @@ define('PrGroup', [
             loadedData.forEach(function (loadedGroup) {
                 if (selectedGroupName === loadedGroup["group_display_name"]) {  // Find the group by name in the loaded data
                     loadedGroup["group_members"].forEach(function (member) {
-                        // The current user cannot be a reviewer of the same PR. So if a selected group contains
-                        // don't add them as a reviewer
+                        // The current user cannot be a reviewer of the same PR. So if a selected group contains don't add them as a reviewer
                         if (member["user_name"] === state.getCurrentUser().name)
                             return;
 
                         console.log("Adding: " + member["user_name"] + " as a reviewer");
                         if (PrMode === PrModes.CREATE || PrMode === PrModes.EDIT_BB6) {
-                            selectedReviewers.push(userInfoToAjsSelect2DataObj(member["user_name"], member["user_display_name"], member["user_avatar_url"]));
+                            selectedReviewers.push(userInfoToAjsSelect2DataObj(member["user_name"],
+                                member["user_display_name"], member["user_avatar_url"]));
                         }
                         else if (PrMode === PrModes.EDIT_BB7) {
-                            selectedReviewers.push(userInfoToReactSelect(member["user_id"], member["user_name"], member["user_display_name"], member["user_avatar_url"]));
+                            selectedReviewers.push(userInfoToReactSelect(member["user_id"], member["user_name"],
+                                member["user_display_name"], member["user_avatar_url"]));
                         }
                         else {
                             throw new Error("PRGroup-Reviewers: Unknown PR Mode")
@@ -280,8 +284,8 @@ define('PrGroup', [
         return selectedReviewers;
     }
 
-    function addReviewersCreate() {
-        // Supported both Bitbucket 6 & 7
+    function addReviewersSelect2() {
+        // This is supported both Bitbucket 6 & 7
         let oldData = $("#reviewers").select2('data');
         // We combine all the individual reviewers already selected plus the members
         // of the group. Then replace the selected reviewers with the result.
@@ -298,33 +302,55 @@ define('PrGroup', [
             let newReviewers = getSelectedMembers()
             let allReviewers = previousReviewers.concat(newReviewers)
             $("#reviewers").select2('data', allReviewers);
+
+            if (PrMode === PrModes.EDIT_BB6) {
+                // On the Bitbucket PR Edit Modal Dialog for Bitbucket 6, the selected reviewer list
+                //  is stored in some internal array (searchable-multi-selector.js _selectedItems)
+                // The array is only updated on change events. The change event is only considered if the element
+                // has the data property: select2-change-triggered set to true. Otherwise it clears the list (re-init?)
+                // So set that data property, for each selected reviewer - fire the change event and unset the property.
+                // Ref: https://bitbucket.org/atlassian/aui/src/master/packages/core/src/js-vendor/jquery/plugins/jquery.select2.js
+                // Ref: /bitbucket-parent/webapp/default/src/main/frontend/static/bitbucket/internal/widget/searchable-multi-selector/searchable-multi-selector.js Line 29
+                $("#reviewers").data("select2-change-triggered", true);
+                allReviewers.forEach(function (reviewerSelect2Data) {
+                    $("#reviewers").trigger(jQuery.Event("change", { added: reviewerSelect2Data }))
+                });
+                $("#reviewers").data("select2-change-triggered", false);
+            }
         }
         catch (err) {
             // On error, revert back to the previous selected reviewers & let caller handle
             $("#reviewers").select2('data', oldData);
+            if (PrMode === PrModes.EDIT_BB6)
+                $("#reviewers").data("select2-change-triggered", false);
+
             throw err
         }
     }
 
-    function addReviewersBB6Edit() {
-        // TODO - Not Yet Supported
-    }
-
-    function addReviewersBB7Edit() {
-        let reviewer_selector = $(".user-multi-select")[0] // can't use $("#reviewers-uidXX") ! Where XX is a seemingly a random number with no obvious pattern.
-        let reviewer_select_state = Object.keys($(reviewer_selector).parent()[0]).find(key=>key.startsWith("__reactEventHandlers$"));
-        let previousReviewers = $(reviewer_selector)[0][reviewer_select_state]["children"][1]["props"].getValue()
+    function addReviewersReact() {
+        let reviewer_selector;
+        let reviewer_select_state;
+        let previousReviewers;
 
         try {
+            reviewer_selector = $(".user-multi-select")[0] // can't use $("#reviewers-uidXX") ! Where XX is a seemingly a random number with no obvious pattern.
+            // noinspection TypeScriptValidateTypes,TypeScriptValidateTypes,TypeScriptValidateJSTypes,JSValidateTypes
+            reviewer_select_state = Object.keys($(reviewer_selector).parent()[0]).find(key => key.startsWith("__reactEventHandlers$"));
+            previousReviewers = $(reviewer_selector)[0][reviewer_select_state]["children"][1]["props"].getValue()
+
             let newReviewers = getSelectedMembers()
             let allReviewers = previousReviewers.concat(newReviewers)
-            console.log(allReviewers)
             $(reviewer_selector)[0][reviewer_select_state]["children"][1]["props"].setValue(allReviewers)
-
         }
         catch (err) {
-            // On error, revert back to the previous selected reviewers & let caller handle
-            $(reviewer_selector)[0][reviewer_select_state]["children"][1]["props"].setValue(previousReviewers)
+            // On error, attempt to revert back to the previous selected reviewers & let caller handle exception
+            try {
+                $(reviewer_selector)[0][reviewer_select_state]["children"][1]["props"].setValue(previousReviewers)
+            }
+            catch (err){
+                console.log("Failed to reviewers back to the previously selected reviewers!")
+            }
             throw err
         }
     }
@@ -332,14 +358,11 @@ define('PrGroup', [
     function addReviewers() {
         try {
             $("#confirm-prgroup-dialog-button").get(0).busy();
-            if (PrMode === PrModes.CREATE) {
-                addReviewersCreate()
-            }
-            else if (PrMode === PrModes.EDIT_BB6) {
-                // TODO - Not Yet Supported
+            if (PrMode === PrModes.CREATE || PrMode === PrModes.EDIT_BB6) {
+                addReviewersSelect2();
             }
             else if (PrMode === PrModes.EDIT_BB7) {
-                addReviewersBB7Edit()
+                addReviewersReact();
             }
             else {
                 throw new Error("PRGroup-Reviewers: Unknown PR Mode")
