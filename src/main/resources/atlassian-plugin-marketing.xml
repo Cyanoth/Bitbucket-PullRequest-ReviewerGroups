@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <atlassian-plugin-marketing>
     <compatibility>
-        <product name="bitbucket" min="6.0.11" max="7.1.2"/>
+        <product name="bitbucket" min="6.0.11" max="7.4.0"/>
     </compatibility>
     <logo image="images/pluginLogo.jpg"/>
     <screenshots>
-        <screenshot image="images/scrn1.jpg"/>
-        <screenshot image="images/scrn2.jpg"/>
-        <screenshot image="images/scrn3.jpg"/>
+        <screenshot image="images/scrn1.png"/>
+        <screenshot image="images/scrn2.png"/>
+        <screenshot image="images/scrn3.png"/>
     </screenshots>
 </atlassian-plugin-marketing>
