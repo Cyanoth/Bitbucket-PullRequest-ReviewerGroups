@@ -4,11 +4,11 @@
 
     <groupId>com.cyanoth</groupId>
     <artifactId>prgroup</artifactId>
-    <version>0.2.2</version>
+    <version>0.3.2</version>
     <packaging>atlassian-plugin</packaging>
 
     <name>Pull Request Reviewer Groups</name>
-    <description>Add members from permitted groups to pull-request reviewers easily</description>
+    <description>Add members from permitted groups to pull-request reviewers</description>
 
     <organization>
         <name>Cyanoth</name>
@@ -21,7 +21,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <amps.version>8.1.0</amps.version>
-        <bitbucket.version>7.1.2</bitbucket.version>
+        <bitbucket.version>7.4.0</bitbucket.version>
         <bitbucket.data.version>${bitbucket.version}</bitbucket.data.version>
         <atlassian.plugin.key>${project.groupId}.${project.artifactId}</atlassian.plugin.key>
 
