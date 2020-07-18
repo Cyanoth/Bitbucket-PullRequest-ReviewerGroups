@@ -119,4 +119,4 @@ If you have any issues with this plugin, just raise an issue on Github.
 
 ## Data security and privacy statement
 
-This plugin does not collect any data of any kind. There are no embeded analytics. 
+This plugin does not collect any data of any kind nor is there any embeded analytics. 
