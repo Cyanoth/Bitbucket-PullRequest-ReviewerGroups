@@ -11,13 +11,10 @@ The user can check a box next to each group (or select all). Members from each g
 
 ### Screenshots
 
-**The Button**
-
-![Add Reviewers Button](src/main/resources/images/scrn1.png)
-
 **Select Group Dialog**
 
-![Select Group Dialog](src/main/resources/images/scrn1.png)
+![Select Group Dialog Example 1](src/main/resources/images/scrn1.png)
+![Select Group Dialog Example 2](src/main/resources/images/scrn3.png)
  
 **Group Info Dialog**
 
