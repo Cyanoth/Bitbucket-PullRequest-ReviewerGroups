@@ -116,3 +116,7 @@ This is primarily a client-side plugin, very little happens server-side.
 **Only groups which have been assigned permission directly to either the project or repository will be shown in the dialog.** 
 
 If you have any issues with this plugin, just raise an issue on Github.
+
+## Data security and privacy statement
+
+This plugin does not collect any data of any kind. There are no embeded analytics. 
