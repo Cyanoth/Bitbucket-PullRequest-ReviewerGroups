@@ -22,7 +22,7 @@ The user can check a box next to each group (or select all). Members from each g
 
 ## Getting Started
 
-You can install this plugin from the Atlassian Market place: <LINK_TO_BE_PROVIDED_ON_APPROVAL>.
+You can install this plugin from the Atlassian MarketPlace: https://marketplace.atlassian.com/apps/1222645/pull-request-reviewers-from-groups.
 
 Alternatively to build this plugin, clone & change into the root directory, then run `atlas-package` You will find the plugin in ./target/prgroup-x-x-x.jar
 
