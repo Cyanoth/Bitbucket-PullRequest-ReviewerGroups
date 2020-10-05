@@ -93,13 +93,14 @@ Tested on Firefox 78 - Other browsers _should_ work too, otherwise raise an issu
 | 6.7.5 | 0.3.2 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
 | 6.8.4 | 0.3.2 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
 | 6.9.3 | 0.3.2 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |  
-| 6.10.5 | 0.3.2 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| 6.10.5 | 0.3.3 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
 | 7.0.5 | 0.3.2 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
 | 7.1.4 | 0.3.2 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
 | 7.2.5 | 0.3.2 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
 | 7.3.1 | 0.3.2 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
 | 7.4.0 | 0.3.2 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
 | 7.5.0 | 0.3.2 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| 7.6.0 | 0.3.3 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
 
 This plugin may work on other versions of Bitbucket Server. Bitbucket version 6 & 7 are supported, it has not been tested on Bitbucket 5.
 
