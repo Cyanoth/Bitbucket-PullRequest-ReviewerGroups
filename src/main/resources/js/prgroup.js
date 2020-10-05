@@ -45,12 +45,8 @@ define('PrGroup', [
     exports.onReady = function () {
         togglePrGroupSection(false)
 
-        // Logic works the same in both Bitbucket 6 & 7: Add button to Create Pull Request Page
-        let bb6_ele = $(".aui-page-header-main").children("h2").first().text()
-        let bb7_ele = $(".page-panel-content-header").first().text()
-        let find_text= "Create pull request"
-
-        if (bb6_ele === find_text || bb7_ele === find_text) {
+        if ($(".pull-request-create-form").length) {
+            // Logic works the same in both Bitbucket 6 & 7: Add button to Create Pull Request Page
             $("#reviewers").after(add_group_button_element);
             addHandlers()
             PrMode = PrModes.CREATE
@@ -92,21 +88,28 @@ define('PrGroup', [
         let observer = new MutationObserver(function(mutations) {
             for(let mutation of mutations) {
                 if (mutation.type === "childList" && mutation.target.className === watchClass) {
-                    // A dialog has been added to the page. Check if its the edit pull request dialog
+                    // A dialog has been added to the page. If its the edit pull request dialog, add the button otherwise do nothing
                     if (mutation.addedNodes.length === 1) {
-                        let selector = ((bitbucket_version === "6") ? $("h2:contains('Edit Pull Request')") : $("span:contains('Edit Pull Request')"))
-                        if (selector.length === 1) {
-                            // This event was to show the edit pull request dialog, so add the pr group button
-                            // Want to put the button in the same div as the reviewer help text (match by text, always last)
-                            let addButtonTarget = $("div:contains('Reviewers can approve a pull request to let others know when it is good to merge')").last();
-                            $(addButtonTarget).before(add_group_button_element);
-                            addHandlers();
-                         }
+                        if (bitbucket_version === "7") {
+                            let reviewerSelector = $(".user-multi-select")[0] // can't use $("#reviewers-uidXX") ! Where XX is a seemingly a random number with no obvious pattern.
+                            if (typeof reviewerSelector !== "undefined") {
+                                $("#" + reviewerSelector.id.concat("-helper")).before(add_group_button_element);
+                                addHandlers();
+                            }
+                        }
+                        else if (bitbucket_version === "6") {
+                            if ($("#s2id_reviewers").length) {
+                                $(".pull-request-reviewers .description").before(add_group_button_element);
+                                addHandlers();
+                            }
+                        }
+                        else {
+                            console.log("PRGroup Reviewer - Unsupported Bitbucket Version.")
+                        }
                      }
                 }
             }
         })
-
         observer.observe(document.body, {
             childList: true,
             subtree: true
