@@ -41,6 +41,7 @@ define('PrGroup', [
     let isLoadingGroups = false;
 
     let hasGroupsLoaded = false;
+    let hasErrored = false;
 
     exports.onReady = function () {
         togglePrGroupSection(false)
@@ -48,7 +49,7 @@ define('PrGroup', [
         if ($(".pull-request-create-form").length) {
             // Logic works the same in both Bitbucket 6 & 7: Add button to Create Pull Request Page
             $("#reviewers").after(add_group_button_element);
-            addHandlers()
+            addHandlers();
             PrMode = PrModes.CREATE
         }
         else {
@@ -162,6 +163,7 @@ define('PrGroup', [
         if (isLoadingGroups)
             return;
 
+        hasErrored = false;
         isLoadingGroups = true;
         let selectedProjectKey;
         let selectedRepositorySlug;
@@ -216,6 +218,7 @@ define('PrGroup', [
                 });
                 resetDialog()
                 isLoadingGroups = false;
+                hasErrored = true;
                 console.log("Error loading PR Groups: " + jqXHR.status + " || Error: " + jqXHR.responseText)
             },
             statusCode: {
@@ -456,6 +459,38 @@ define('PrGroup', [
                 });
             }
         });
+    }
+
+    exports.isPrGroupInstalled = function() {
+        return "0.4.0" // This should match pom.xml version
+    }
+
+    exports.loadPrGroupsExternally = function () {
+        if (hasGroupsLoaded)
+            return "ready"
+
+        if (hasErrored)
+            return "errored"
+
+        loadDialog()
+
+        if (isLoadingGroups)
+            return "loading"
+
+        return "unknown"
+    }
+
+    exports.addPrGroupsExternally = function(groupNames) {
+        $(".checkbox-selected-prgroup").prop('checked', false);
+
+        groupNames.forEach(function(group) {
+            if ($(".checkbox-selected-prgroup[name=\'" + group + "\']").length > 0) {
+                $(".checkbox-selected-prgroup[name=\'" + group + "\']").prop('checked', true);
+            }
+            else
+                console.log("PRGroups: Could not add group: " + group + ". Does it exist?")
+        });
+        addReviewers();
     }
 });
 
