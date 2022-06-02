@@ -93,7 +93,7 @@ define('PrGroup', [
                         if (bitbucket_version === "7") {
                             let reviewerSelector = $(".user-multi-select")[0] // can't use $("#reviewers-uidXX") ! Where XX is a seemingly a random number with no obvious pattern.
                             if (typeof reviewerSelector !== "undefined") {
-                                $("#" + reviewerSelector.id.concat("-helper")).before(add_group_button_element);
+                                $("#" + reviewerSelector.id).after(add_group_button_element);
                                 addHandlers();
                             }
                         }
